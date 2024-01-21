@@ -48,7 +48,7 @@ class EmployeeController extends Controller
     {
         $this->employeeRepository->importFromXml($request->validated()['file']);
 
-        return response()->noContent(200);
+        return response()->noContent();
     }
 
     public function update(EmployeeCreateUpdateRequest $request, int $id): JsonResponse

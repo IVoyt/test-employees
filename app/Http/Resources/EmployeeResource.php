@@ -27,12 +27,12 @@ class EmployeeResource extends JsonResource
             'last_name'   => $this->last_name,
             'patronymic'  => $this->patronymic,
             'birthdate'   => $this->birthdate,
-            'department'  => $this->department->title,
-            'position'    => $this->position->title,
-            'salary_type' => $this->salaryType->title,
-            'salary'      => $this->salaryType->type === SalaryType::TYPE_MONTHLY
-                ? $this->salary
-                : $hours * $this->salary,
+            'department'  => $this->department->title ?? null,
+            'position'    => $this->position->title ?? null,
+            'salary_type' => Employee::SALARY_TYPES_TITLES[$this->salary_type],
+            'salary'      => $this->salary_type === Employee::SALARY_TYPE_MONTHLY
+                ? round($this->salary, 2)
+                : round($hours * $this->salary, 2),
             'created_at'  => $this->created_at,
             'updated_at'  => $this->updated_at
         ];

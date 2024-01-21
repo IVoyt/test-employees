@@ -26,8 +26,8 @@ final class DepartmentRepository
         return $department;
     }
 
-    public function create(DepartmentDto $salaryTypeDto): Department
+    public function create(DepartmentDto $departmentDto): Department
     {
-        return Department::query()->create($salaryTypeDto->toArray());
+        return Department::query()->create($departmentDto->toArray());
     }
 }

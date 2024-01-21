@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Http\Requests\Employee\EmployeeCreateUpdateRequest;
 use App\Models\Employee;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -12,8 +13,7 @@ final class EmployeeRepository
 {
     public function __construct(
         private DepartmentRepository $departmentRepository,
-        private PositionRepository   $positionRepository,
-        private SalaryTypeRepository $salaryTypeRepository
+        private PositionRepository   $positionRepository
     ) {}
 
     public function findAll(): Collection
@@ -49,8 +49,27 @@ final class EmployeeRepository
         return $query->paginate($perPage);
     }
 
+    public function findOneBy(array $params): ?Employee
+    {
+        $query = Employee::query();
+        
+        foreach ($params as $field => $value) {
+            if (is_array($value)) {
+                $query->whereIn($field, $value);
+            } else {
+                $query->where($field, $value);
+            }
+        }
+
+        /** @var Employee */
+        return $query->first();
+    }
+
     public function create(array $employeeData): Employee
     {
+        if (isset($employeeData['salary'])) {
+            $employeeData['salary'] = round($employeeData['salary'], 2);
+        }
         return Employee::query()->create($employeeData);
     }
 
@@ -67,14 +86,11 @@ final class EmployeeRepository
                 $field = $node['tag'];
                 $value = $node['child_nodes'][0]['text'];
 
-                if (in_array($field, ['department', 'position', 'salary_type'], true)) {
-                    $repo = 'departmentRepository';
-                    if ($field === 'position') {
-                        $repo = 'positionRepository';
-                    }
-                    if ($field === 'salary_type') {
-                        $repo = 'salaryTypeRepository';
-                    }
+                if (in_array($field, ['department', 'position'], true)) {
+                    $repo = $field === 'department'
+                        ? 'departmentRepository'
+                        : 'positionRepository';
+
                     $model = $this->{$repo}->findOneByTitle($value);
                     if (!$model) {
                         continue 2;
@@ -83,6 +99,9 @@ final class EmployeeRepository
                     $field = "{$field}_id";
                     $value = $model->id;
                 }
+                if ($field === 'salary_type') {
+                    $value = array_search($value, Employee::SALARY_TYPES_TITLES);
+                }
                 $data[$field] = $value;
             }
 
@@ -90,7 +109,25 @@ final class EmployeeRepository
         }
 
         foreach ($employeesData as $data) {
-            Employee::query()->create($data);
+            try {
+                $request = new EmployeeCreateUpdateRequest();
+                $validatedData = (\Validator::make($data, $request->rules()))->validated();
+            } catch (\Throwable $e) {
+                continue;
+            }
+
+            $employee = $this->findOneBy(
+                [
+                    'first_name' => $validatedData['first_name'],
+                    'last_name'  => $validatedData['last_name'],
+                    'patronymic' => $validatedData['patronymic'],
+                ]
+            );
+            if ($employee) {
+                $employee->update($validatedData);
+            } else {
+                Employee::query()->create($validatedData);
+            }
         }
     }
 
