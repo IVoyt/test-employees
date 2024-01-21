@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<employees>
+    <employee>
+        <first_name>Ivanov</first_name>
+        <last_name>Ivan</last_name>
+        <patronymic>Ivanovich</patronymic>
+        <birthdate>1985-04-25</birthdate>
+        <department>it</department>
+        <position>Admin</position>
+        <salary_type>hourly</salary_type>
+        <salary>15</salary>
+    </employee>
+    <employee>
+        <first_name>Petrov</first_name>
+        <last_name>Petr</last_name>
+        <patronymic>Petrovich</patronymic>
+        <birthdate>1993-12-24</birthdate>
+        <department>sales</department>
+        <position>Sales Engineer</position>
+        <salary_type>monthly</salary_type>
+        <salary>45000</salary>
+    </employee>
+</employees>
